@@ -1,0 +1,36 @@
+name: Deploy Demo API
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "api"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        repository: j-markiewicz/transit-map
+      - uses: actions/configure-pages@v5
+      - run: |
+          cd server
+          yarn
+          yarn dev dump
+          cd ..
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "dump/"
+      - id: deployment
+        uses: actions/deploy-pages@v4
